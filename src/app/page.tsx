@@ -1,65 +1,94 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useRef } from 'react';
+import Scene from '@/components/three/Scene';
+import { useScrollStore } from '@/lib/store';
+import { motion, useScroll } from 'framer-motion';
+import { instance as audio } from '@/lib/AudioEngine';
+
+import { GlobalNav } from '@/components/ui/navigation/GlobalNav';
+import { TheMinting } from '@/components/ui/sections/TheMinting';
+import { TheVault } from '@/components/ui/sections/TheVault';
+import { TheExchange } from '@/components/ui/sections/TheExchange';
+import { ThePedestal } from '@/components/ui/sections/ThePedestal';
+import { HUDOverlay } from '@/components/ui/HUDOverlay';
 
 export default function Home() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { progress, setProgress, setVelocity } = useScrollStore();
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
+
+  useEffect(() => {
+    const unsub = scrollYProgress.on("change", (latest) => {
+      setProgress(latest);
+      const vel = scrollYProgress.getVelocity();
+      setVelocity(vel);
+      audio.update(latest, vel);
+    });
+    return () => unsub();
+  }, [scrollYProgress, setProgress, setVelocity]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main ref={containerRef} className="relative h-[600vh] bg-black text-white">
+      {/* Central 3D Coin */}
+      <Scene />
+
+      {/* Global Navigation Engine */}
+      <GlobalNav />
+
+      {/* 
+        EPIC SCROLLYTELLING JOURNEY 
+        Each section acts as a massive collision floor and environment trigger 
+      */}
+      <div className="relative z-10 w-full flex flex-col">
+        {/* Intro Spacing */}
+        <section className="h-[100vh] flex items-center justify-center pointer-events-none">
+          <h1 className="text-[10vw] font-black tracking-tighter text-white mix-blend-overlay opacity-20">
+            THE ENGINE
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        </section>
+
+        {/* The Environments */}
+        <TheMinting />
+        <TheVault />
+        <TheExchange />
+        <ThePedestal />
+
+        {/* Spacing for completion */}
+        <div className="h-[50vh]" />
+      </div>
+      <section id="metrics" className="relative z-10 flex h-screen flex-col items-center justify-center pointer-events-none">
+        <div className="text-center">
+          <h2 className="text-[8vw] font-black mb-12 uppercase italic text-white/50">Elevate Status</h2>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => window.location.href = "mailto:contact@precision.engine"}
+            className="pointer-events-auto mt-8 relative group px-16 py-8 bg-transparent text-white border-2 border-white/20 text-3xl font-black uppercase tracking-tighter hover:bg-white hover:text-black hover:border-white transition-all duration-500 overflow-hidden"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <div className="absolute inset-0 bg-white translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] -z-10" />
+            <span className="relative z-10 mixt-blend-difference">Initiate Contact</span>
+          </motion.button>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* 
+        ADVANCED HUD & INTERACTIVE CONTROL 
+      */}
+      <HUDOverlay />
+
+      <div className="fixed top-1/2 left-10 -translate-y-1/2 z-20 pointer-events-none hidden lg:block">
+        <div className="w-1 h-32 bg-white/20">
+          <motion.div
+            style={{ height: progress * 100 + "%" }}
+            className="w-full bg-white origin-top"
+          />
+        </div>
+      </div>
+    </main>
   );
 }
